@@ -40,7 +40,18 @@ import {
   renderPattern,
   renderCurrentPattern,
   testNotation,
-  getNotationStatus
+  getNotationStatus,
+  highlightBeat,
+  highlightNextBeat,
+  clearAllHighlights,
+  resetBeatHighlighting,
+  testBeatHighlighting,
+  startRealTimeTracking,
+  stopRealTimeTracking,
+  advanceRealTimeBeat,
+  checkTapTiming,
+  showTapFeedback,
+  getRealTimeState
 } from './modules/notation.js';
 
 // TODO: Import other modules as we build them
@@ -116,6 +127,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialPattern = getCurrentPattern();
     renderPattern(initialPattern);
     console.log('🎼 Initial pattern rendered');
+    
+    // Connect notation feedback to window for input handler
+    window.showNotationFeedback = showTapFeedback;
   }
   
   // Initialize patterns module
@@ -227,8 +241,9 @@ function testNextPattern() {
   
   console.log(`📋 Summary: ${noteCount} notes, ${restCount} rests, ${barCount} bar(s)`);
   
-  // Render the new pattern with VexFlow
+  // Render the new pattern with VexFlow and reset highlighting
   if (renderPattern(newPattern)) {
+    resetBeatHighlighting(); // Reset highlighting for new pattern
     console.log('🎼 Pattern notation updated');
   } else {
     console.error('❌ Failed to render pattern notation');
@@ -267,6 +282,94 @@ function testMultiplayerInput() {
     endGame();
     console.log('📊 Test complete. Check console logs above for any issues.');
   }, 15000);
+}
+
+// Test function for real-time beat tracking with metronome and input feedback
+function testRealTimeBeatTracking() {
+  console.log('🎯 Testing Real-Time Beat Tracking with Input Feedback!');
+  
+  // Get current pattern
+  const currentPattern = getCurrentPattern();
+  console.log('🎵 Current pattern:', currentPattern);
+  
+  // Start a new game
+  startNewGame();
+  
+  // Start real-time tracking in notation
+  startRealTimeTracking(currentPattern);
+  
+  // Start input listening
+  startListening();
+  
+  // Start metronome
+  startMetronome();
+  
+  console.log('🚀 Real-time tracking with input feedback started!');
+  console.log('🎹 Tap along to the beat - watch for colored feedback!');
+  console.log('🟢 Green = Perfect timing');
+  console.log('🟡 Yellow = Good timing'); 
+  console.log('🔴 Red = Missed timing');
+  
+  const currentMode = getStateSnapshot().mode;
+  console.log(`🎯 ${getInputInstructions(currentMode)}`);
+  
+  // Beat tracking with input feedback
+  let beatIndex = 0;
+  const nonBarlineNotes = currentPattern.filter(note => !note.isBarline);
+  const totalBeats = nonBarlineNotes.length;
+  let expectedBeatTimes = []; // Store expected times for tap checking
+  
+  const trackBeat = () => {
+    if (beatIndex < totalBeats) {
+      const currentTime = performance.now();
+      expectedBeatTimes[beatIndex] = currentTime;
+      
+      // Advance beat in notation
+      if (advanceRealTimeBeat()) {
+        console.log(`🎯 Tracking beat ${beatIndex + 1}/${totalBeats} at time ${currentTime.toFixed(2)}`);
+      }
+      
+      beatIndex++;
+      
+      // Calculate timing for next beat
+      const note = nonBarlineNotes[beatIndex - 1];
+      let duration = BEAT_INTERVAL;
+      
+      if (note) {
+        if (note.type === 'eighth') duration = BEAT_INTERVAL / 2;
+        else if (note.type === 'sixteenth') duration = BEAT_INTERVAL / 4;
+        else if (note.type === 'quarter') duration = BEAT_INTERVAL;
+        
+        if (note.dotted) duration *= 1.5;
+      }
+      
+      setTimeout(trackBeat, duration);
+    } else {
+      // Pattern complete
+      console.log('🎵 Pattern complete!');
+      
+      // Show final results
+      setTimeout(() => {
+        stopRealTimeTracking();
+        stopMetronome();
+        stopListening();
+        endGame();
+        
+        // Clean up
+        window.expectedBeatTimes = null;
+        
+        console.log('📊 Real-time tracking results:', getSessionStats());
+        console.log('🎹 Input results:', getInputState());
+        console.log('✅ Real-time beat tracking with feedback complete!');
+      }, 1000);
+    }
+  };
+  
+  // Store expected times for tap feedback
+  window.expectedBeatTimes = expectedBeatTimes; // Make available for input handler
+  
+  // Start tracking after a short delay
+  setTimeout(trackBeat, BEAT_INTERVAL);
 }
 
 // Test function for full game loop - demonstrates all modules working together
@@ -463,6 +566,70 @@ function addTestButtons() {
   renderCurrentBtn.style.backgroundColor = '#795548';
   renderCurrentBtn.style.color = 'white';
   testArea.appendChild(renderCurrentBtn);
+  
+  // Beat Highlighting Test button
+  const testHighlightBtn = document.createElement('button');
+  testHighlightBtn.textContent = 'Test Beat Highlighting';
+  testHighlightBtn.onclick = () => {
+    console.log('🎯 Testing beat highlighting...');
+    if (testBeatHighlighting()) {
+      console.log('✅ Beat highlighting test started');
+    } else {
+      console.error('❌ Beat highlighting test failed');
+    }
+  };
+  testHighlightBtn.style.margin = '5px';
+  testHighlightBtn.style.backgroundColor = '#FF5722';
+  testHighlightBtn.style.color = 'white';
+  testArea.appendChild(testHighlightBtn);
+  
+  // Real-time Beat Tracking button
+  const realTimeBtn = document.createElement('button');
+  realTimeBtn.textContent = 'Real-Time Tracking';
+  realTimeBtn.onclick = testRealTimeBeatTracking;
+  realTimeBtn.style.margin = '5px';
+  realTimeBtn.style.backgroundColor = '#4CAF50';
+  realTimeBtn.style.color = 'white';
+  realTimeBtn.style.fontWeight = 'bold';
+  testArea.appendChild(realTimeBtn);
+  
+  // Clear Highlights button
+  const clearHighlightsBtn = document.createElement('button');
+  clearHighlightsBtn.textContent = 'Clear Highlights';
+  clearHighlightsBtn.onclick = () => {
+    clearAllHighlights();
+    resetBeatHighlighting();
+    stopRealTimeTracking(); // Also stop real-time tracking
+    console.log('🔄 All highlights cleared');
+  };
+  clearHighlightsBtn.style.margin = '5px';
+  clearHighlightsBtn.style.backgroundColor = '#9E9E9E';
+  clearHighlightsBtn.style.color = 'white';
+  clearHighlightsBtn.style.fontSize = '0.9em';
+  testArea.appendChild(clearHighlightsBtn);
+  
+  // Test Tap Feedback button
+  const testTapFeedbackBtn = document.createElement('button');
+  testTapFeedbackBtn.textContent = 'Test Tap Feedback';
+  testTapFeedbackBtn.onclick = () => {
+    console.log('🧪 Testing tap feedback colors...');
+    const notationStatus = getNotationStatus();
+    // Show different feedback types on the first few beats
+    if (notationStatus.notesCount >= 4) {
+      showTapFeedback(0, 'perfect');
+      setTimeout(() => showTapFeedback(1, 'good'), 500);
+      setTimeout(() => showTapFeedback(2, 'miss'), 1000);
+      setTimeout(() => clearAllHighlights(), 2000);
+      console.log('✅ Tap feedback test: Perfect (green), Good (yellow), Miss (red)');
+    } else {
+      console.error('❌ Not enough notes to test feedback. Try rendering a pattern first.');
+    }
+  };
+  testTapFeedbackBtn.style.margin = '5px';
+  testTapFeedbackBtn.style.backgroundColor = '#673AB7';
+  testTapFeedbackBtn.style.color = 'white';
+  testTapFeedbackBtn.style.fontSize = '0.9em';
+  testArea.appendChild(testTapFeedbackBtn);
   
   // Debug Toggle button (commented out temporarily)
   /*

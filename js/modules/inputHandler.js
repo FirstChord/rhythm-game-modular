@@ -251,6 +251,55 @@ function processTap(key, currentTime, player) {
   }
   
   console.log(`🎹 Tap: Player ${player}, Key: ${key}, Time: ${currentTime.toFixed(2)}`);
+  
+  // Check for real-time tracking feedback
+  checkRealTimeFeedback(currentTime, player);
+}
+
+// Check if tap should provide real-time feedback
+function checkRealTimeFeedback(tapTime, player) {
+  // Check if we're in real-time tracking mode and have expected beat times
+  if (typeof window !== 'undefined' && window.expectedBeatTimes) {
+    const expectedTimes = window.expectedBeatTimes;
+    
+    // Find the closest expected beat time
+    let closestBeatIndex = -1;
+    let closestTimeDiff = Infinity;
+    
+    for (let i = 0; i < expectedTimes.length; i++) {
+      if (expectedTimes[i]) {
+        const timeDiff = Math.abs(tapTime - expectedTimes[i]);
+        if (timeDiff < closestTimeDiff && timeDiff < 500) { // Within 500ms window
+          closestTimeDiff = timeDiff;
+          closestBeatIndex = i;
+        }
+      }
+    }
+    
+    if (closestBeatIndex >= 0) {
+      // Determine timing accuracy
+      let result;
+      if (closestTimeDiff <= 70) {
+        result = 'perfect';
+      } else if (closestTimeDiff <= 170) {
+        result = 'good';
+      } else {
+        result = 'miss';
+      }
+      
+      // Show feedback (this will be called from the main module)
+      console.log(`🎯 Real-time feedback: ${result} (${closestTimeDiff.toFixed(0)}ms off) on beat ${closestBeatIndex + 1}`);
+      
+      // Notify the notation module to show feedback
+      if (typeof window.showNotationFeedback === 'function') {
+        window.showNotationFeedback(closestBeatIndex, result);
+      }
+      
+      return { beatIndex: closestBeatIndex, result: result, timeDiff: closestTimeDiff };
+    }
+  }
+  
+  return null;
 }
 
 // Show visual feedback for tap
