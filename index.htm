@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rhythm Tapping Game</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <h1>Rhythm Tapping Game</h1>
+  <div class="mode-select">
+    <label>
+      <input type="radio" name="mode" id="modeSingle" checked>
+      Single Player (Spacebar)
+    </label>
+    <label>
+      <input type="radio" name="mode" id="modeMulti">
+      Multiplayer (A = Player 1, Enter = Player 2)
+    </label>
+    <label style="margin-left:2em;">
+      Games: <input type="number" min="1" step="1" value="3" id="numGames" style="width:3em;">
+    </label>
+  </div>
+  <div class="speed-select">
+    <label><input type="radio" name="speed" value="slow" id="speedSlow"> Slow</label>
+    <label><input type="radio" name="speed" value="medium" id="speedMedium" checked> Medium</label>
+    <label><input type="radio" name="speed" value="fast" id="speedFast"> Fast</label>
+  </div>
+  <div class="level-select" style="margin-bottom: 20px;">
+    <label>Level:
+      <select id="levelSelect">
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option>
+      </select>
+    </label>
+  </div>
+  <div class="metronome-label" id="metronomeLabel"></div>
+  <div class="metronome" id="metronome">1</div>
+  <div class="tap-indicator-area" id="tapIndicatorArea">
+    <div>
+      <div class="tap-indicator player1" id="tapIndicator1"></div>
+      <div class="player-label player1">Player 1</div>
+    </div>
+    <div class="player2-area" id="player2Area">
+      <div class="tap-indicator player2" id="tapIndicator2"></div>
+      <div class="player-label player2">Player 2</div>
+    </div>
+  </div>
+  <div class="rhythm-bar" id="rhythmBar"></div>
+  <button id="startButton">Start Game</button>
+  <button id="resetButton">Next Pattern</button>
+  <div id="scoreDisplay" class="score"></div>
+  <div id="resultDisplay" class="result"></div>
+  <table class="player-table" id="playerTable" style="display:none;">
+    <tbody>
+      <tr>
+        <th></th>
+        <th class="player1">Player 1</th>
+        <th class="player2">Player 2</th>
+      </tr>
+      <tr>
+        <td>Score</td>
+        <td id="scoreP1">0</td>
+        <td id="scoreP2">0</td>
+      </tr>
+      <tr>
+        <td>Accuracy (%)</td>
+        <td id="accP1">0%</td>
+        <td id="accP2">0%</td>
+      </tr>
+      <tr>
+        <td>Perfect</td>
+        <td id="perfectP1">0</td>
+        <td id="perfectP2">0</td>
+      </tr>
+      <tr>
+        <td>Good</td>
+        <td id="goodP1">0</td>
+        <td id="goodP2">0</td>
+      </tr>
+      <tr>
+        <td>Miss</td>
+        <td id="missP1">0</td>
+        <td id="missP2">0</td>
+      </tr>
+    </tbody>
+  </table>
+  <table class="cumulative-table" id="cumulativeTable" style="display:none;">
+    <tbody>
+      <tr>
+        <th colspan="3" style="text-align:center;">Cumulative Results</th>
+      </tr>
+      <tr>
+        <th></th>
+        <th class="player1">Player 1</th>
+        <th class="player2">Player 2</th>
+      </tr>
+      <tr>
+        <td>Total Score</td>
+        <td id="cumulScoreP1">0</td>
+        <td id="cumulScoreP2">0</td>
+      </tr>
+      <tr>
+        <td>Average Accuracy (%)</td>
+        <td id="cumulAccP1">0%</td>
+        <td id="cumulAccP2">0%</td>
+      </tr>
+      <tr class="winner-row">
+        <td colspan="3" id="finalWinner" class="winner"></td>
+      </tr>
+      <tr>
+        <td colspan="3" id="celebrateRow"></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="confetti" id="confetti"></div>
+
+  <!-- Module imports -->
+  <script type="module" src="js/main.js"></script>
+  
+  <!-- TODO: Add other modules as we build them -->
+  <!-- <script type="module" src="js/modules/patterns.js"></script> -->
+  <!-- <script type="module" src="js/modules/gameState.js"></script> -->
+  <!-- <script type="module" src="js/modules/inputHandler.js"></script> -->
+  <!-- <script type="module" src="js/modules/notation.js"></script> -->
+</body>
+</html>
