@@ -19,11 +19,24 @@ import {
   getStateSnapshot,
   getSessionStats,
   isSessionComplete,
-  debugState
+  debugState,
+  getGameState,
+  setKeyDown,
+  addHoldPeriod,
+  endHoldPeriod
 } from './modules/gameState.js';
+import {
+  initInputHandler,
+  startListening,
+  stopListening,
+  getInputInstructions,
+  getInputState,
+  simulateInput,
+  emergencyStop
+  // setDebugMode  // Comment out for now
+} from './modules/inputHandler.js';
 
 // TODO: Import other modules as we build them
-// import { setupInputHandlers } from './modules/inputHandler.js';
 // import { renderPattern } from './modules/notation.js';
 
 // Game settings
@@ -43,6 +56,8 @@ let levelSelect = null;
 let modeSingle = null;
 let modeMulti = null;
 let numGamesInput = null;
+let tapIndicator1 = null;
+let tapIndicator2 = null;
 
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -59,6 +74,8 @@ document.addEventListener('DOMContentLoaded', function() {
   modeSingle = document.getElementById('modeSingle');
   modeMulti = document.getElementById('modeMulti');
   numGamesInput = document.getElementById('numGames');
+  tapIndicator1 = document.getElementById('tapIndicator1');
+  tapIndicator2 = document.getElementById('tapIndicator2');
   
   // Initialize game state
   const initialConfig = {
@@ -71,6 +88,19 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize audio module
   initAudio(metronome, BEAT_INTERVAL);
+  
+  // Initialize input handler module
+  const gameStateModule = {
+    getGameState,
+    setKeyDown,
+    addHoldPeriod,
+    endHoldPeriod
+  };
+  const tapIndicators = {
+    player1: tapIndicator1,
+    player2: tapIndicator2
+  };
+  initInputHandler(gameStateModule, tapIndicators);
   
   // Initialize patterns module
   if (levelSelect) {
@@ -96,6 +126,10 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Show initial game state
   console.log('🎮 Initial game state:', getStateSnapshot());
+  
+  // Show input instructions
+  const currentMode = modeSingle && modeSingle.checked ? 'single' : 'multi';
+  console.log('🎹 Input instructions:', getInputInstructions(currentMode));
   
   // Add test buttons for development
   addTestButtons();
@@ -178,6 +212,73 @@ function testNextPattern() {
   console.log(`📋 Summary: ${noteCount} notes, ${restCount} rests, ${barCount} bar(s)`);
 }
 
+// Test function specifically for multiplayer input debugging
+function testMultiplayerInput() {
+  console.log('🎮 Testing Multiplayer Input - Debug Mode');
+  
+  // Force switch to multiplayer mode
+  if (modeMulti) {
+    modeMulti.checked = true;
+    setGameMode('multi');
+  }
+  
+  console.log('🎯 Current mode:', getStateSnapshot().mode);
+  console.log('🎹 Input instructions:', getInputInstructions('multi'));
+  
+  // Start a new game
+  startNewGame();
+  
+  // Start input listening
+  startListening();
+  
+  console.log('✅ Multiplayer test setup complete');
+  console.log('🎹 Try pressing:');
+  console.log('   - A key (Player 1)');
+  console.log('   - Enter key (Player 2)');
+  console.log('🔍 Watch console for detailed input debugging...');
+  
+  // Auto stop after 15 seconds
+  setTimeout(() => {
+    console.log('⏹ Multiplayer test ending...');
+    stopListening();
+    endGame();
+    console.log('📊 Test complete. Check console logs above for any issues.');
+  }, 15000);
+}
+
+// Test function for full game loop - demonstrates all modules working together
+function testFullGameLoop() {
+  console.log('🎮 Testing Full Game Loop - All Modules Together!');
+  console.log('🎵 Current pattern:', getCurrentPattern());
+  
+  // Start a new game
+  startNewGame();
+  
+  // Start input listening
+  startListening();
+  
+  // Start metronome
+  startMetronome();
+  
+  console.log('🚀 Game loop started!');
+  console.log('🎹 Try tapping to the metronome:');
+  
+  const currentMode = getStateSnapshot().mode;
+  console.log(`🎯 ${getInputInstructions(currentMode)}`);
+  
+  // Stop after 10 seconds for demo
+  setTimeout(() => {
+    console.log('⏹ Demo ending...');
+    stopMetronome();
+    stopListening();
+    endGame();
+    
+    console.log('📊 Final Stats:', getSessionStats());
+    console.log('🎹 Final Input State:', getInputState());
+    console.log('✅ Full game loop test complete!');
+  }, 10000);
+}
+
 // Test function for game state management
 function testGameState() {
   console.log('🧪 Testing Game State Management...');
@@ -209,7 +310,7 @@ function addTestButtons() {
   testArea.style.borderRadius = '5px';
   
   const title = document.createElement('h3');
-  title.textContent = 'Game State Tests';
+  title.textContent = 'Module Tests';
   title.style.margin = '0 0 10px 0';
   testArea.appendChild(title);
   
@@ -240,29 +341,125 @@ function addTestButtons() {
   showStatsBtn.style.margin = '5px';
   testArea.appendChild(showStatsBtn);
   
+  // Start Input Listening button
+  const startInputBtn = document.createElement('button');
+  startInputBtn.textContent = 'Start Input';
+  startInputBtn.onclick = () => {
+    startListening();
+    console.log('👂 Input listening started');
+    console.log('🎹 Input state:', getInputState());
+  };
+  startInputBtn.style.margin = '5px';
+  testArea.appendChild(startInputBtn);
+  
+  // Stop Input Listening button
+  const stopInputBtn = document.createElement('button');
+  stopInputBtn.textContent = 'Stop Input';
+  stopInputBtn.onclick = () => {
+    stopListening();
+    console.log('🔇 Input listening stopped');
+    console.log('🎹 Input state:', getInputState());
+  };
+  stopInputBtn.style.margin = '5px';
+  testArea.appendChild(stopInputBtn);
+  
+  // Simulate Input button
+  const simulateInputBtn = document.createElement('button');
+  simulateInputBtn.textContent = 'Simulate Tap';
+  simulateInputBtn.onclick = () => {
+    const currentMode = getStateSnapshot().mode;
+    console.log(`🧪 Simulating input for ${currentMode} mode...`);
+    simulateInput(1, 150);
+    if (currentMode === 'multi') {
+      setTimeout(() => simulateInput(2, 150), 200);
+    }
+  };
+  simulateInputBtn.style.margin = '5px';
+  testArea.appendChild(simulateInputBtn);
+  
+  // Show Input State button
+  const inputStateBtn = document.createElement('button');
+  inputStateBtn.textContent = 'Input State';
+  inputStateBtn.onclick = () => {
+    console.log('🎹 Input State:', getInputState());
+    const currentMode = getStateSnapshot().mode;
+    console.log('🎯 Current Instructions:', getInputInstructions(currentMode));
+  };
+  inputStateBtn.style.margin = '5px';
+  testArea.appendChild(inputStateBtn);
+  
+  // Test Full Game Loop button
+  const testGameLoopBtn = document.createElement('button');
+  testGameLoopBtn.textContent = 'Test Game Loop';
+  testGameLoopBtn.onclick = testFullGameLoop;
+  testGameLoopBtn.style.margin = '5px';
+  testGameLoopBtn.style.backgroundColor = '#4CAF50';
+  testGameLoopBtn.style.color = 'white';
+  testGameLoopBtn.style.fontWeight = 'bold';
+  testArea.appendChild(testGameLoopBtn);
+  
+  // Test Multiplayer Input button
+  const testMultiBtn = document.createElement('button');
+  testMultiBtn.textContent = 'Test Multiplayer';
+  testMultiBtn.onclick = testMultiplayerInput;
+  testMultiBtn.style.margin = '5px';
+  testMultiBtn.style.backgroundColor = '#2196F3';
+  testMultiBtn.style.color = 'white';
+  testArea.appendChild(testMultiBtn);
+  
+  // Debug Toggle button (commented out temporarily)
+  /*
+  const debugToggleBtn = document.createElement('button');
+  debugToggleBtn.textContent = 'Debug ON'; // DEBUG_INPUT starts as true
+  debugToggleBtn.onclick = () => {
+    const isCurrentlyOn = debugToggleBtn.textContent === 'Debug ON';
+    setDebugMode(!isCurrentlyOn);
+    debugToggleBtn.textContent = isCurrentlyOn ? 'Debug OFF' : 'Debug ON';
+    debugToggleBtn.style.backgroundColor = isCurrentlyOn ? '#9E9E9E' : '#FF5722';
+  };
+  debugToggleBtn.style.margin = '5px';
+  debugToggleBtn.style.backgroundColor = '#FF5722'; // Red because debug starts ON
+  debugToggleBtn.style.color = 'white';
+  debugToggleBtn.style.fontSize = '0.9em';
+  testArea.appendChild(debugToggleBtn);
+  */
+  
   // Add after the reset button
   if (resetButton && resetButton.parentNode) {
     resetButton.parentNode.insertBefore(testArea, resetButton.nextSibling);
   }
 }
 
-// Test function to see if metronome works
+// Test function to see if metronome and input work together
 function testMetronome() {
-  console.log('🎯 Testing metronome...');
-  startButton.textContent = 'Stop Metronome';
+  console.log('🎯 Testing metronome with input...');
+  startButton.textContent = 'Stop Test';
   startButton.removeEventListener('click', testMetronome);
   startButton.addEventListener('click', stopTestMetronome);
   
+  // Start a mini game
+  startNewGame();
+  startListening();
   startMetronome();
+  
+  const currentMode = getStateSnapshot().mode;
+  console.log(`🎹 ${getInputInstructions(currentMode)}`);
+  console.log('🎵 Tap along to the beat!');
 }
 
 function stopTestMetronome() {
-  console.log('⏹ Stopping metronome...');
+  console.log('⏹ Stopping test...');
   startButton.textContent = 'Start Game';
   startButton.removeEventListener('click', stopTestMetronome);
   startButton.addEventListener('click', testMetronome);
   
   stopMetronome();
+  stopListening();
+  endGame();
+  
+  console.log('📊 Test results:', getSessionStats());
+  console.log('🎹 Input results:', getInputState());
+  
   metronome.style.background = '#ccc';
   metronome.textContent = '1';
 }
