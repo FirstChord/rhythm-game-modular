@@ -7,9 +7,22 @@ import {
   getPatternInfo,
   getPatternsForLevel 
 } from './modules/patterns.js';
+import {
+  initGameState,
+  setGameMode,
+  setSpeed as setGameSpeed,
+  setLevel,
+  setTotalGames,
+  startNewGame,
+  endGame,
+  resetSession,
+  getStateSnapshot,
+  getSessionStats,
+  isSessionComplete,
+  debugState
+} from './modules/gameState.js';
 
 // TODO: Import other modules as we build them
-// import { initGameState } from './modules/gameState.js';
 // import { setupInputHandlers } from './modules/inputHandler.js';
 // import { renderPattern } from './modules/notation.js';
 
@@ -27,6 +40,9 @@ let speedSlow = null;
 let speedMedium = null;
 let speedFast = null;
 let levelSelect = null;
+let modeSingle = null;
+let modeMulti = null;
+let numGamesInput = null;
 
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -40,6 +56,18 @@ document.addEventListener('DOMContentLoaded', function() {
   speedMedium = document.getElementById('speedMedium');
   speedFast = document.getElementById('speedFast');
   levelSelect = document.getElementById('levelSelect');
+  modeSingle = document.getElementById('modeSingle');
+  modeMulti = document.getElementById('modeMulti');
+  numGamesInput = document.getElementById('numGames');
+  
+  // Initialize game state
+  const initialConfig = {
+    mode: modeSingle && modeSingle.checked ? 'single' : 'multi',
+    speed: speed,
+    selectedLevel: levelSelect ? levelSelect.value : 'beginner',
+    totalGames: numGamesInput ? parseInt(numGamesInput.value, 10) || 3 : 3
+  };
+  initGameState(initialConfig);
   
   // Initialize audio module
   initAudio(metronome, BEAT_INTERVAL);
@@ -65,6 +93,12 @@ document.addEventListener('DOMContentLoaded', function() {
   const patternInfo = getPatternInfo();
   console.log(`🎵 Pattern info:`, patternInfo);
   console.log(`📊 ${patternInfo.totalInLevel} patterns available for ${patternInfo.level} level`);
+  
+  // Show initial game state
+  console.log('🎮 Initial game state:', getStateSnapshot());
+  
+  // Add test buttons for development
+  addTestButtons();
 });
 
 function setupEventListeners() {
@@ -123,8 +157,10 @@ function setSpeed(newSpeed) {
   BPM = SPEEDS[speed];
   BEAT_INTERVAL = 60000 / BPM;
   setBeatInterval(BEAT_INTERVAL);
+  setGameSpeed(newSpeed); // Update game state
   
   console.log(`🎼 Speed changed to: ${speed} (${BPM} BPM)`);
+  console.log('🎮 Updated game state:', getStateSnapshot());
 }
 
 // Test function to cycle through patterns
@@ -140,6 +176,74 @@ function testNextPattern() {
   const barCount = newPattern.filter(note => note.isBarline).length + 1; // +1 for last bar
   
   console.log(`📋 Summary: ${noteCount} notes, ${restCount} rests, ${barCount} bar(s)`);
+}
+
+// Test function for game state management
+function testGameState() {
+  console.log('🧪 Testing Game State Management...');
+  
+  // Start a new game
+  startNewGame();
+  console.log('📊 After starting game:', getSessionStats());
+  
+  // Simulate some gameplay...
+  setTimeout(() => {
+    endGame();
+    console.log('📊 After ending game:', getSessionStats());
+    
+    // Start another game
+    if (!isSessionComplete()) {
+      console.log('🎮 Starting game 2...');
+      startNewGame();
+    }
+  }, 2000);
+}
+
+// Add test buttons functionality
+function addTestButtons() {
+  // Create a test area
+  const testArea = document.createElement('div');
+  testArea.style.marginTop = '20px';
+  testArea.style.padding = '10px';
+  testArea.style.backgroundColor = '#f9f9f9';
+  testArea.style.borderRadius = '5px';
+  
+  const title = document.createElement('h3');
+  title.textContent = 'Game State Tests';
+  title.style.margin = '0 0 10px 0';
+  testArea.appendChild(title);
+  
+  // Test Game State button
+  const testStateBtn = document.createElement('button');
+  testStateBtn.textContent = 'Test Game State';
+  testStateBtn.onclick = testGameState;
+  testStateBtn.style.margin = '5px';
+  testArea.appendChild(testStateBtn);
+  
+  // Reset Session button
+  const resetSessionBtn = document.createElement('button');
+  resetSessionBtn.textContent = 'Reset Session';
+  resetSessionBtn.onclick = () => {
+    resetSession();
+    console.log('🔄 Session reset. Stats:', getSessionStats());
+  };
+  resetSessionBtn.style.margin = '5px';
+  testArea.appendChild(resetSessionBtn);
+  
+  // Show Stats button
+  const showStatsBtn = document.createElement('button');
+  showStatsBtn.textContent = 'Show Stats';
+  showStatsBtn.onclick = () => {
+    console.log('📊 Current Stats:', getSessionStats());
+    console.log('🎮 Game State:', getStateSnapshot());
+  };
+  showStatsBtn.style.margin = '5px';
+  testArea.appendChild(showStatsBtn);
+  
+  // Add after the reset button
+  if (resetButton && resetButton.parentNode) {
+    resetButton.parentNode.insertBefore(testArea, resetButton.nextSibling);
+  }
 }
 
 // Test function to see if metronome works
