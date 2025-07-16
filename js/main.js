@@ -35,9 +35,15 @@ import {
   emergencyStop
   // setDebugMode  // Comment out for now
 } from './modules/inputHandler.js';
+import {
+  initNotation,
+  renderPattern,
+  renderCurrentPattern,
+  testNotation,
+  getNotationStatus
+} from './modules/notation.js';
 
 // TODO: Import other modules as we build them
-// import { renderPattern } from './modules/notation.js';
 
 // Game settings
 const SPEEDS = { slow: 70, medium: 100, fast: 140 };
@@ -101,6 +107,16 @@ document.addEventListener('DOMContentLoaded', function() {
     player2: tapIndicator2
   };
   initInputHandler(gameStateModule, tapIndicators);
+  
+  // Initialize notation module
+  if (!initNotation('vexflowOutput')) {
+    console.error('❌ Failed to initialize VexFlow notation');
+  } else {
+    // Render initial pattern
+    const initialPattern = getCurrentPattern();
+    renderPattern(initialPattern);
+    console.log('🎼 Initial pattern rendered');
+  }
   
   // Initialize patterns module
   if (levelSelect) {
@@ -210,6 +226,13 @@ function testNextPattern() {
   const barCount = newPattern.filter(note => note.isBarline).length + 1; // +1 for last bar
   
   console.log(`📋 Summary: ${noteCount} notes, ${restCount} rests, ${barCount} bar(s)`);
+  
+  // Render the new pattern with VexFlow
+  if (renderPattern(newPattern)) {
+    console.log('🎼 Pattern notation updated');
+  } else {
+    console.error('❌ Failed to render pattern notation');
+  }
 }
 
 // Test function specifically for multiplayer input debugging
@@ -406,6 +429,40 @@ function addTestButtons() {
   testMultiBtn.style.backgroundColor = '#2196F3';
   testMultiBtn.style.color = 'white';
   testArea.appendChild(testMultiBtn);
+  
+  // Test VexFlow Notation button
+  const testNotationBtn = document.createElement('button');
+  testNotationBtn.textContent = 'Test Notation';
+  testNotationBtn.onclick = () => {
+    console.log('🧪 Testing VexFlow notation...');
+    console.log('🎼 VexFlow status:', getNotationStatus());
+    if (testNotation()) {
+      console.log('✅ VexFlow test pattern rendered successfully');
+    } else {
+      console.error('❌ VexFlow test failed');
+    }
+  };
+  testNotationBtn.style.margin = '5px';
+  testNotationBtn.style.backgroundColor = '#9C27B0';
+  testNotationBtn.style.color = 'white';
+  testArea.appendChild(testNotationBtn);
+  
+  // Render Current Pattern button  
+  const renderCurrentBtn = document.createElement('button');
+  renderCurrentBtn.textContent = 'Render Current';
+  renderCurrentBtn.onclick = () => {
+    const currentPattern = getCurrentPattern();
+    console.log('🎼 Rendering current pattern:', currentPattern);
+    if (renderPattern(currentPattern)) {
+      console.log('✅ Current pattern rendered successfully');
+    } else {
+      console.error('❌ Failed to render current pattern');
+    }
+  };
+  renderCurrentBtn.style.margin = '5px';
+  renderCurrentBtn.style.backgroundColor = '#795548';
+  renderCurrentBtn.style.color = 'white';
+  testArea.appendChild(renderCurrentBtn);
   
   // Debug Toggle button (commented out temporarily)
   /*
