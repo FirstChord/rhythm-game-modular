@@ -255,7 +255,7 @@ body {
 }
 
 .result { font-size: 1.2rem; margin-top: 13px; min-height: 2.2em; }
-#resetButton { display: none; margin-top: 15px; }
+#resetButton { margin-top: 15px; }
 .score, .player-table { margin: 23px auto 0; font-size: 1.2rem;}
 
 .player-table {
