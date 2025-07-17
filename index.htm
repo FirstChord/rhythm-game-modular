@@ -3,6 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  
+  <!-- Performance optimizations -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme-color" content="#2ca02c">
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="css/styles.css" as="style">
+  <link rel="preload" href="js/libs/vexflow-min.js" as="script">
+  
+  <!-- DNS prefetch for external resources -->
+  <link rel="dns-prefetch" href="//fonts.googleapis.com">
+  
   <title>Rhythm Tapping Game</title>
   <link rel="stylesheet" href="css/styles.css">
   
@@ -128,11 +141,5 @@
 
   <!-- Module imports -->
   <script type="module" src="js/main.js"></script>
-  
-  <!-- TODO: Add other modules as we build them -->
-  <!-- <script type="module" src="js/modules/patterns.js"></script> -->
-  <!-- <script type="module" src="js/modules/gameState.js"></script> -->
-  <!-- <script type="module" src="js/modules/inputHandler.js"></script> -->
-  <!-- <script type="module" src="js/modules/notation.js"></script> -->
 </body>
 </html>

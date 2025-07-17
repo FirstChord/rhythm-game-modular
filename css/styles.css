@@ -1,8 +1,19 @@
+/* CSS Performance Optimizations */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body { 
-  font-family: sans-serif; 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; 
   text-align: center; 
   padding: 50px; 
-  background: #f0f0f0; 
+  background: #f0f0f0;
+  margin: 0;
+  line-height: 1.6;
+  /* Enable hardware acceleration for animations */
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .confetti {

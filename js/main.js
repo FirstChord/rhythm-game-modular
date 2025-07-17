@@ -1,59 +1,11 @@
 // Main Game Controller
 import { initAudio, startMetronome, stopMetronome, setBeatInterval, playTickSound, getMetronomeStartTime, getBeatTime, getAudioContext } from './modules/audio.js';
 import SmartLatencyCompensator from './smartLatency.js';
-import { 
-  setSelectedLevel, 
-  getCurrentPattern, 
-  nextPattern, 
-  getPatternInfo,
-  getPatternsForLevel 
-} from './modules/patterns.js';
-import {
-  initGameState,
-  setGameMode,
-  setSpeed as setGameSpeed,
-  setLevel,
-  setTotalGames,
-  startNewGame,
-  endGame,
-  resetSession,
-  getStateSnapshot,
-  getSessionStats,
-  isSessionComplete,
-  debugState,
-  getGameState,
-  setKeyDown,
-  addHoldPeriod,
-  endHoldPeriod
-} from './modules/gameState.js';
-import {
-  initInputHandler,
-  startListening,
-  stopListening,
-  getInputInstructions,
-  getInputState,
-  simulateInput,
-  emergencyStop
-  // setDebugMode - disabled
-} from './modules/inputHandler.js';
-import {
-  initNotation,
-  renderPattern,
-  renderCurrentPattern,
-  testNotation,
-  getNotationStatus,
-  clearAllHighlights,
-  resetBeatHighlighting,
-  testBeatHighlighting,
-  startCountIn,
-  advanceCountIn,
-  hideCountInIndicator,
-  getGameFlowState,
-  resetGameFlow,
-  completePattern,
-  showTapFeedback,
-  stopRealTimeTracking
-} from './modules/notation.js';
+
+// Professional Systems Integration
+import { globalResourceManager } from './utils/ResourceManager.js';
+import { globalErrorBoundary } from './utils/ErrorBoundary.js';
+import { globalPerformanceMonitor } from './utils/PerformanceMonitor.js';
 
 
 // Import modules
@@ -84,6 +36,19 @@ let tapIndicator2 = null;
 // Initialize the game when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🎵 Rhythm Game Loading...');
+  
+  // Initialize professional systems
+  globalPerformanceMonitor.start();
+  globalErrorBoundary.registerRecovery('audio', () => {
+    console.log('🔧 Attempting audio recovery...');
+    // Reinitialize audio if needed
+    if (getAudioContext()?.state === 'suspended') {
+      getAudioContext().resume();
+    }
+  });
+  
+  // Mark performance points
+  globalPerformanceMonitor.mark('dom-ready');
   
   // Get DOM elements
   metronome = document.getElementById('metronome');
@@ -169,53 +134,57 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupEventListeners() {
-  // Start button
+  // Set up event listeners with resource management
   if (startButton) {
-    startButton.addEventListener('click', startProperGame); // Use the new proper game function
-    startButton.textContent = 'Start Game'; // Update button text
+    globalResourceManager.addEventListener(startButton, 'click', startProperGame);
   }
   
-  // Reset/Next Pattern button
   if (resetButton) {
-    resetButton.addEventListener('click', testNextPattern);
+    globalResourceManager.addEventListener(resetButton, 'click', testNextPattern);
   }
   
-  // Speed controls
   if (speedSlow) {
-    speedSlow.addEventListener('change', function() { 
-      if (speedSlow.checked) setSpeed('slow'); 
+    globalResourceManager.addEventListener(speedSlow, 'change', function() { 
+      if (speedSlow.checked) setSpeed('slow');
     });
   }
   
   if (speedMedium) {
-    speedMedium.addEventListener('change', function() { 
-      if (speedMedium.checked) setSpeed('medium'); 
+    globalResourceManager.addEventListener(speedMedium, 'change', function() { 
+      if (speedMedium.checked) setSpeed('medium');
     });
   }
   
   if (speedFast) {
-    speedFast.addEventListener('change', function() { 
-      if (speedFast.checked) setSpeed('fast'); 
+    globalResourceManager.addEventListener(speedFast, 'change', function() { 
+      if (speedFast.checked) setSpeed('fast');
     });
   }
   
-  // Level selection
   if (levelSelect) {
-    levelSelect.addEventListener('change', function() {
+    globalResourceManager.addEventListener(levelSelect, 'change', function() {
       const newLevel = levelSelect.value;
+      setLevel(newLevel);
       setSelectedLevel(newLevel);
       const patternInfo = getPatternInfo();
-
     });
   }
   
-  // Test click sound on metronome
   if (metronome) {
-    metronome.addEventListener('click', function() {
+    globalResourceManager.addEventListener(metronome, 'click', function() {
       console.log('🔊 Testing click sound...');
       playTickSound(true);
     });
   }
+  
+  // Mark initialization complete
+  globalPerformanceMonitor.mark('init-complete');
+  globalPerformanceMonitor.measure('initialization', 'dom-ready', 'init-complete');
+  
+  // Log performance report
+  setTimeout(() => {
+    globalPerformanceMonitor.logReport();
+  }, 2000);
 }
 
 function setSpeed(newSpeed) {
@@ -225,7 +194,8 @@ function setSpeed(newSpeed) {
   setBeatInterval(BEAT_INTERVAL);
   setGameSpeed(newSpeed); // Update game state
   
-
+  // Track performance impact of speed changes
+  globalPerformanceMonitor.mark(`speed-change-${newSpeed}`);
 }
 
 // Test function to cycle through patterns
@@ -454,7 +424,7 @@ function startProperGame() {
       }
       
       beatIndex++;
-      setTimeout(trackBeat, BEAT_INTERVAL);
+      globalResourceManager.setTimeout(trackBeat, BEAT_INTERVAL);
       
     } else if (beatIndex < quarterNoteBeats.length) {
       // Game phase - track each quarter note beat
@@ -478,7 +448,7 @@ function startProperGame() {
       beatIndex++;
       
       if (beatIndex < quarterNoteBeats.length) {
-        setTimeout(trackBeat, BEAT_INTERVAL);
+        globalResourceManager.setTimeout(trackBeat, BEAT_INTERVAL);
       } else {
         // Pattern complete
         console.log('🏁 Pattern complete!');
@@ -487,7 +457,7 @@ function startProperGame() {
         window.isRecording = false;
         
         // Give time for final taps then analyze
-        setTimeout(() => {
+        globalResourceManager.setTimeout(() => {
           stopMetronome();
           stopListening();
           endGame();
@@ -751,9 +721,8 @@ function analyzeSimplePerformance(pattern, taps) {
           let durationPercent = Math.max(0, 100 - (durationDiff / durationTolerance * 100));
           
           // Give bonus for being close to expected duration
-          if (durationDiff < expectedDuration * 0.2) { // Within 20% of expected
+          if (durationDiff < expectedDuration * 0.2) // Within 20% of expected
             durationPercent = Math.min(100, durationPercent + 10); // Bonus points
-          }
           
           // More generous minimum score
           durationScore = Math.max(60, Math.round(durationPercent));
@@ -1210,10 +1179,6 @@ function showDetailedSummary(beatResults) {
   const perfectBeats = beatResults.filter(b => b.result === 'perfect').length;
   const goodBeats = beatResults.filter(b => b.result === 'good').length;
   const closeBeats = beatResults.filter(b => b.result === 'close').length;
-  
-  // Separate rest beats from regular beats for proper counting
-  const restBeats = beatResults.filter(b => b.type === 'rest');
-  const noteBeats = beatResults.filter(b => b.type !== 'rest');
   const missedNoteBeats = noteBeats.filter(b => b.result === 'miss').length;
   const missedRestBeats = restBeats.filter(b => b.result === 'miss').length;
   
