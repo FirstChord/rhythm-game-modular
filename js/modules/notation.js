@@ -1,4 +1,9 @@
 // Notation Module - Handles music notation rendering with VexFlow
+// Now with professional optimization and performance improvements
+
+import { vexflowFactory } from '../utils/VexFlowPatternFactory.js';
+import { globalPerformanceMonitor } from '../utils/PerformanceMonitor.js';
+import { globalResourceManager } from '../utils/ResourceManager.js';
 
 let vexflowRenderer = null;
 let vexflowContext = null;
@@ -6,6 +11,7 @@ let currentStave = null;
 let currentNotes = []; // Store current notes for highlighting
 let currentVoice = null;
 let currentBeams = [];
+let currentVexFlowData = null; // Cache current rendered data
 
 // Initialize VexFlow
 export function initNotation(containerId = 'vexflowOutput') {
@@ -35,73 +41,22 @@ export function initNotation(containerId = 'vexflowOutput') {
   return true;
 }
 
-// Convert pattern data to VexFlow format
+// Optimized pattern conversion using professional factory
 function convertPatternToVexFlow(flatPattern) {
-  const vexflowNotes = [];
+  globalPerformanceMonitor.mark('pattern-conversion-start');
   
-  for (let i = 0; i < flatPattern.length; i++) {
-    const note = flatPattern[i];
+  try {
+    // Use optimized factory for pattern conversion
+    const vexflowData = vexflowFactory.convertPatternToVexFlow(flatPattern);
     
-    // Skip barlines in flattened pattern
-    if (note.isBarline) continue;
+    globalPerformanceMonitor.mark('pattern-conversion-end');
+    globalPerformanceMonitor.measure('pattern-conversion', 'pattern-conversion-start', 'pattern-conversion-end');
     
-    let duration;
-    let noteType;
-    
-    // Convert note type to VexFlow duration
-    switch (note.type) {
-      case 'whole':
-        duration = 'w';
-        break;
-      case 'half':
-        duration = 'h';
-        break;
-      case 'quarter':
-        duration = 'q';
-        break;
-      case 'eighth':
-        duration = '8';
-        break;
-      case 'sixteenth':
-        duration = '16';
-        break;
-      default:
-        console.warn(`⚠️ Unknown note type: ${note.type}, defaulting to quarter`);
-        duration = 'q'; // fallback
-    }
-    
-    // Add rest suffix if it's a rest
-    if (note.rest) {
-      duration += 'r';
-      noteType = 'rest';
-    } else {
-      noteType = 'note';
-    }
-    
-    // Handle dotted notes
-    if (note.dotted) {
-      duration += 'd';
-    }
-    
-    // Create VexFlow note object
-    if (note.rest) {
-      vexflowNotes.push(
-        new Vex.Flow.StaveNote({
-          keys: ['b/4'], // Rest position doesn't matter much
-          duration: duration
-        })
-      );
-    } else {
-      vexflowNotes.push(
-        new Vex.Flow.StaveNote({
-          keys: ['b/4'], // Middle line for rhythm notation
-          duration: duration
-        })
-      );
-    }
+    return vexflowData.notes; // Return notes for backward compatibility
+  } catch (error) {
+    console.error('❌ Pattern conversion failed:', error);
+    return [];
   }
-  
-  return vexflowNotes;
 }
 
 // Group notes for beaming (VexFlow handles this automatically for 8th and 16th notes)
@@ -135,16 +90,57 @@ function createBeams(notes) {
   return beams;
 }
 
-// Render a pattern using VexFlow
+// Render a pattern using VexFlow (OPTIMIZED VERSION)
 export function renderPattern(flatPattern) {
   if (!vexflowContext) {
     console.error('❌ VexFlow not initialized. Call initNotation() first.');
     return false;
   }
-  
-  console.log('🎼 Rendering pattern with VexFlow...', flatPattern);
+
+  globalPerformanceMonitor.mark('vexflow-render-start');
+  console.log('🎼 Rendering pattern with optimized VexFlow...', flatPattern);
   
   try {
+    // Get optimized VexFlow data from factory
+    currentVexFlowData = vexflowFactory.convertPatternToVexFlow(flatPattern);
+    currentNotes = currentVexFlowData.notes; // Store for highlighting
+    currentBeams = currentVexFlowData.beams; // Store beams
+    
+    if (currentNotes.length === 0) {
+      console.warn('⚠️ No notes to render');
+      return false;
+    }
+
+    // Create optimized stave
+    const stave = new Vex.Flow.Stave(50, 10, 500);
+    stave.addClef('treble').addTimeSignature('4/4');
+    currentStave = stave;
+    
+    // Use factory's optimized rendering
+    const success = vexflowFactory.renderOptimized(vexflowContext, stave, currentVexFlowData);
+    
+    globalPerformanceMonitor.mark('vexflow-render-end');
+    globalPerformanceMonitor.measure('vexflow-render', 'vexflow-render-start', 'vexflow-render-end');
+    
+    if (success) {
+      console.log('✅ Pattern rendered successfully with optimization');
+      return true;
+    } else {
+      console.warn('⚠️ Optimized rendering failed, attempting fallback');
+      return renderPatternFallback(flatPattern);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error in optimized rendering:', error);
+    return renderPatternFallback(flatPattern);
+  }
+}
+
+// Fallback rendering method (original approach)
+function renderPatternFallback(flatPattern) {
+  try {
+    console.log('🔄 Using fallback rendering...');
+    
     // Clear previous notation
     vexflowContext.clear();
     
@@ -158,7 +154,7 @@ export function renderPattern(flatPattern) {
     // Draw the staff
     stave.setContext(vexflowContext).draw();
     
-    // Convert pattern to VexFlow notes
+    // Convert pattern to VexFlow notes (simplified version)
     const notes = convertPatternToVexFlow(flatPattern);
     currentNotes = notes; // Store for highlighting
     
@@ -167,37 +163,21 @@ export function renderPattern(flatPattern) {
       return false;
     }
     
-    // Create a voice (musical voice) to hold the notes
-    const voice = new Vex.Flow.Voice({
-      num_beats: 4,
-      beat_value: 4
-    });
-    currentVoice = voice;
+    // Use VexFlow's FormatAndDraw helper for simplicity
+    Vex.Flow.Formatter.FormatAndDraw(vexflowContext, stave, notes);
     
-    // Add notes to voice
-    voice.addTickables(notes);
-    
-    // Format the voice to fit the staff
-    const formatter = new Vex.Flow.Formatter();
-    formatter.joinVoices([voice]).format([voice], 400);
-    
-    // Create beams for grouped notes
-    const beams = createBeams(notes);
+    // Create and draw beams using VexFlow automatic beaming
+    const beams = Vex.Flow.Beam.generateBeams(notes);
     currentBeams = beams;
-    
-    // Draw everything
-    voice.draw(vexflowContext, stave);
-    
-    // Draw beams
     beams.forEach(beam => {
       beam.setContext(vexflowContext).draw();
     });
     
-    console.log('✅ Pattern rendered successfully');
+    console.log('✅ Fallback pattern rendered successfully');
     return true;
     
   } catch (error) {
-    console.error('❌ Error rendering pattern:', error);
+    console.error('❌ Fallback rendering also failed:', error);
     return false;
   }
 }
@@ -613,4 +593,74 @@ export function testBeatHighlighting() {
   
   highlightNext();
   return true;
+}
+
+// Professional cleanup and resource management
+export function cleanupNotation() {
+  console.log('🧹 Cleaning up VexFlow resources...');
+  
+  // Clear cache in factory
+  vexflowFactory.clearCache();
+  
+  // Clear current state
+  currentNotes = [];
+  currentBeams = [];
+  currentVoice = null;
+  currentStave = null;
+  currentVexFlowData = null;
+  
+  // Clear context if available
+  if (vexflowContext) {
+    try {
+      vexflowContext.clear();
+    } catch (error) {
+      console.warn('Warning: Could not clear VexFlow context:', error);
+    }
+  }
+  
+  console.log('✅ VexFlow cleanup complete');
+}
+
+// Get performance statistics
+export function getNotationStats() {
+  return {
+    cacheStats: vexflowFactory.getCacheStats(),
+    currentNotes: currentNotes.length,
+    currentBeams: currentBeams.length,
+    isInitialized: !!vexflowContext
+  };
+}
+
+// Register cleanup with resource manager
+if (typeof globalResourceManager !== 'undefined') {
+  globalResourceManager.addEventListener(window, 'beforeunload', cleanupNotation);
+}
+
+// Performance monitoring integration
+export function benchmarkNotationPerformance(pattern, iterations = 10) {
+  console.log(`🏃‍♂️ Benchmarking notation performance (${iterations} iterations)...`);
+  
+  const times = [];
+  
+  for (let i = 0; i < iterations; i++) {
+    const start = performance.now();
+    renderPattern(pattern);
+    const end = performance.now();
+    times.push(end - start);
+  }
+  
+  const avgTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+  
+  const results = {
+    average: avgTime.toFixed(2) + 'ms',
+    minimum: minTime.toFixed(2) + 'ms', 
+    maximum: maxTime.toFixed(2) + 'ms',
+    iterations,
+    cacheStats: vexflowFactory.getCacheStats()
+  };
+  
+  console.log('📊 Notation Performance Results:', results);
+  return results;
 }

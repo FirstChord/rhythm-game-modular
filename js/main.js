@@ -43,7 +43,7 @@ import {
   // setDebugMode - disabled
 } from './modules/inputHandler.js';
 import {
-  initNotation,
+  initializeNotation,
   renderPattern,
   renderCurrentPattern,
   testNotation,
@@ -58,7 +58,9 @@ import {
   resetGameFlow,
   completePattern,
   showTapFeedback,
-  stopRealTimeTracking
+  stopRealTimeTracking,
+  cleanupNotation,
+  getNotationStats
 } from './modules/notation.js';
 
 // Game settings
@@ -142,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initInputHandler(gameStateModule, tapIndicators);
   
   // Initialize notation module
-  if (!initNotation('vexflowOutput')) {
+  if (!initializeNotation('vexflowOutput')) {
     console.error('❌ Failed to initialize VexFlow notation');
   } else {
     // Render initial pattern
@@ -1504,4 +1506,26 @@ function addLatencyTestButton() {
 
 // Cleanup any old test functions
 // End of file
+
+// Professional Resource Cleanup Integration
+globalResourceManager.addEventListener(window, 'beforeunload', () => {
+  console.log('🔄 App shutting down, cleaning up resources...');
+  
+  // Cleanup notation resources
+  cleanupNotation();
+  
+  // Stop metronome
+  stopMetronome();
+  
+  // Stop latency compensator
+  if (latencyCompensator) {
+    latencyCompensator.stop();
+  }
+  
+  console.log('✅ App cleanup complete');
+});
+
+// Performance monitoring
+console.log('📊 Performance Monitor Active:', globalPerformanceMonitor.isEnabled());
+console.log('🛡️ Error Boundary Active:', globalErrorBoundary.isEnabled());
 

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VexFlow Pattern Optimization Test</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <h1>🎵 VexFlow Pattern Optimization Test</h1>
+        
+        <div class="test-controls">
+            <button id="testBasicPattern">Test Basic Pattern</button>
+            <button id="testComplexPattern">Test Complex Pattern</button>
+            <button id="benchmarkPerformance">Benchmark Performance</button>
+            <button id="showCacheStats">Show Cache Stats</button>
+        </div>
+        
+        <div id="notation-output"></div>
+        
+        <div id="test-results">
+            <h3>Test Results:</h3>
+            <pre id="results-output"></pre>
+        </div>
+        
+        <div id="performance-stats">
+            <h3>Performance Stats:</h3>
+            <pre id="stats-output"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeNotation, renderPattern, getNotationStats, benchmarkNotationPerformance } from './js/modules/notation.js';
+        import { PATTERNS } from './js/modules/patterns.js';
+
+        // Initialize notation
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 200;
+        document.getElementById('notation-output').appendChild(canvas);
+        
+        initializeNotation(canvas);
+
+        // Test handlers
+        document.getElementById('testBasicPattern').addEventListener('click', () => {
+            console.log('🧪 Testing basic pattern...');
+            const result = renderPattern(PATTERNS.basic);
+            document.getElementById('results-output').textContent = `Basic pattern test: ${result ? 'SUCCESS' : 'FAILED'}`;
+        });
+
+        document.getElementById('testComplexPattern').addEventListener('click', () => {
+            console.log('🧪 Testing complex pattern...');
+            const complexPattern = {
+                notes: [
+                    { note: 'c/4', duration: '8' },
+                    { note: 'd/4', duration: '16' },
+                    { note: 'e/4', duration: '16' },
+                    { note: 'f/4', duration: '8' },
+                    { note: 'g/4', duration: '4' },
+                    { note: 'a/4', duration: '8' },
+                    { note: 'b/4', duration: '8' }
+                ],
+                timeSignature: '4/4',
+                name: 'Complex Test Pattern'
+            };
+            
+            const result = renderPattern(complexPattern);
+            document.getElementById('results-output').textContent = `Complex pattern test: ${result ? 'SUCCESS' : 'FAILED'}`;
+        });
+
+        document.getElementById('benchmarkPerformance').addEventListener('click', () => {
+            console.log('🏃‍♂️ Running performance benchmark...');
+            const results = benchmarkNotationPerformance(PATTERNS.basic, 20);
+            document.getElementById('results-output').textContent = JSON.stringify(results, null, 2);
+        });
+
+        document.getElementById('showCacheStats').addEventListener('click', () => {
+            console.log('📊 Getting cache stats...');
+            const stats = getNotationStats();
+            document.getElementById('stats-output').textContent = JSON.stringify(stats, null, 2);
+        });
+
+        // Initial status
+        document.getElementById('results-output').textContent = 'Ready for testing...';
+        document.getElementById('stats-output').textContent = 'Click "Show Cache Stats" to see current state';
+    </script>
+</body>
+</html>
