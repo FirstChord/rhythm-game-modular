@@ -41,41 +41,23 @@ export class ErrorBoundary {
    * Setup audio-specific error handling
    */
   setupAudioErrorHandling() {
-    // Audio context state monitoring
-    if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
-      const originalAudioContext = window.AudioContext || window.webkitAudioContext;
-      
-      // Monitor audio context creation
-      const contextInstances = new WeakSet();
-      
-      // Override AudioContext constructor to monitor instances
-      const AudioContextWrapper = function(...args) {
-        const context = new originalAudioContext(...args);
-        contextInstances.add(context);
-        
-        // Monitor context state changes
-        const originalClose = context.close.bind(context);
-        const originalSuspend = context.suspend.bind(context);
-        const originalResume = context.resume.bind(context);
-        
-        context.close = async function() {
-          try {
-            return await originalClose();
-          } catch (error) {
-            this.handleError(error, 'audio-close');
-          }
-        }.bind(this);
-        
-        return context;
-      }.bind(this);
-      
-      // Preserve original methods
-      Object.setPrototypeOf(AudioContextWrapper, originalAudioContext);
-      AudioContextWrapper.prototype = originalAudioContext.prototype;
-      
-      window.AudioContext = AudioContextWrapper;
-      if (window.webkitAudioContext) {
-        window.webkitAudioContext = AudioContextWrapper;
+    // Simple audio context monitoring without constructor override
+    // This is safer and doesn't interfere with native implementations
+    
+    // Monitor existing audio contexts if available
+    if (typeof window.getAudioContext === 'function') {
+      try {
+        const context = window.getAudioContext();
+        if (context) {
+          // Monitor context state changes
+          context.addEventListener('statechange', () => {
+            if (context.state === 'interrupted' || context.state === 'closed') {
+              this.handleError(new Error(`Audio context state: ${context.state}`), 'audio-state');
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Could not setup audio monitoring:', error);
       }
     }
   }

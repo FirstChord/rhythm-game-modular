@@ -7,8 +7,59 @@ import { globalResourceManager } from './utils/ResourceManager.js';
 import { globalErrorBoundary } from './utils/ErrorBoundary.js';
 import { globalPerformanceMonitor } from './utils/PerformanceMonitor.js';
 
-
-// Import modules
+import { 
+  setSelectedLevel, 
+  getCurrentPattern, 
+  nextPattern, 
+  getPatternInfo,
+  getPatternsForLevel 
+} from './modules/patterns.js';
+import {
+  initGameState,
+  setGameMode,
+  setSpeed as setGameSpeed,
+  setLevel,
+  setTotalGames,
+  startNewGame,
+  endGame,
+  resetSession,
+  getStateSnapshot,
+  getSessionStats,
+  isSessionComplete,
+  debugState,
+  getGameState,
+  setKeyDown,
+  addHoldPeriod,
+  endHoldPeriod
+} from './modules/gameState.js';
+import {
+  initInputHandler,
+  startListening,
+  stopListening,
+  getInputInstructions,
+  getInputState,
+  simulateInput,
+  emergencyStop
+  // setDebugMode - disabled
+} from './modules/inputHandler.js';
+import {
+  initNotation,
+  renderPattern,
+  renderCurrentPattern,
+  testNotation,
+  getNotationStatus,
+  clearAllHighlights,
+  resetBeatHighlighting,
+  testBeatHighlighting,
+  startCountIn,
+  advanceCountIn,
+  hideCountInIndicator,
+  getGameFlowState,
+  resetGameFlow,
+  completePattern,
+  showTapFeedback,
+  stopRealTimeTracking
+} from './modules/notation.js';
 
 // Game settings
 const SPEEDS = { slow: 70, medium: 100, fast: 140 };
@@ -1174,6 +1225,10 @@ function showDetailedSummary(beatResults) {
   });
   
   summaryHTML += '</div>';
+  
+  // Split beat results into notes and rests
+  const noteBeats = beatResults.filter(b => !b.isRest);
+  const restBeats = beatResults.filter(b => b.isRest);
   
   // Add statistics
   const perfectBeats = beatResults.filter(b => b.result === 'perfect').length;
