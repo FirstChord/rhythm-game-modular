@@ -1,0 +1,24 @@
+# VS Code
+.vscode/
+
+# Test and debug files
+debug-buttons.html
+test-timing.html
+test_completion.html
+
+# Analysis and documentation files (keep some, ignore others)
+console-data-analysis.md
+timing-analysis-report.md
+
+# Temporary or experimental files
+js/test-compensation.js
+js/utils/simpleTimingMonitor.js
+js/utils/timingDiagnostics.js
+js/utils/audioLatencyTest.js
+
+# Node modules (if any)
+node_modules/
+
+# System files
+.DS_Store
+Thumbs.db

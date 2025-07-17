@@ -50,6 +50,12 @@ function convertPatternToVexFlow(flatPattern) {
     
     // Convert note type to VexFlow duration
     switch (note.type) {
+      case 'whole':
+        duration = 'w';
+        break;
+      case 'half':
+        duration = 'h';
+        break;
       case 'quarter':
         duration = 'q';
         break;
@@ -60,6 +66,7 @@ function convertPatternToVexFlow(flatPattern) {
         duration = '16';
         break;
       default:
+        console.warn(`⚠️ Unknown note type: ${note.type}, defaulting to quarter`);
         duration = 'q'; // fallback
     }
     
@@ -360,7 +367,184 @@ export function showTapFeedback(beatIndex, result) {
   return true;
 }
 
-// Get current real-time tracking state
+// Game flow states
+let gameFlowState = 'ready'; // 'ready', 'counting', 'playing', 'complete'
+let countInBeat = 0;
+
+// Start count-in sequence
+export function startCountIn() {
+  gameFlowState = 'counting';
+  countInBeat = 0;
+  clearAllHighlights();
+  
+  // Show count-in indicator
+  showCountInIndicator(countInBeat + 1);
+  console.log('🎼 Count-in started: 1...');
+  
+  return true;
+}
+
+// Advance count-in beat
+export function advanceCountIn() {
+  countInBeat++;
+  
+  if (countInBeat >= 4) {
+    // Count-in complete, start game
+    gameFlowState = 'playing';
+    showGameStartIndicator();
+    console.log('🚀 Count-in complete - Game starting!');
+    return { complete: true, beat: countInBeat };
+  } else {
+    // Continue counting
+    showCountInIndicator(countInBeat + 1);
+    console.log(`🎼 Count-in: ${countInBeat + 1}...`);
+    return { complete: false, beat: countInBeat };
+  }
+}
+
+// Show count-in number overlay
+function showCountInIndicator(number) {
+  // Find or create count-in overlay
+  let overlay = document.getElementById('countInOverlay');
+  
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'countInOverlay';
+    overlay.style.position = 'absolute';
+    overlay.style.top = '50%';
+    overlay.style.left = '50%';
+    overlay.style.transform = 'translate(-50%, -50%)';
+    overlay.style.fontSize = '4rem';
+    overlay.style.fontWeight = 'bold';
+    overlay.style.color = '#2196F3';
+    overlay.style.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
+    overlay.style.zIndex = '1000';
+    overlay.style.pointerEvents = 'none';
+    
+    // Add to the notation container
+    const container = document.getElementById('vexflowOutput');
+    if (container) {
+      container.style.position = 'relative';
+      container.appendChild(overlay);
+    }
+  }
+  
+  overlay.textContent = number.toString();
+  overlay.style.display = 'block';
+  
+  // Add animation
+  overlay.style.transform = 'translate(-50%, -50%) scale(1.5)';
+  overlay.style.opacity = '1';
+  
+  setTimeout(() => {
+    if (overlay) {
+      overlay.style.transform = 'translate(-50%, -50%) scale(1)';
+    }
+  }, 100);
+}
+
+// Show "GO!" indicator when game starts
+function showGameStartIndicator() {
+  let overlay = document.getElementById('countInOverlay');
+  
+  if (overlay) {
+    overlay.textContent = 'GO!';
+    overlay.style.color = '#4CAF50';
+    overlay.style.transform = 'translate(-50%, -50%) scale(1.8)';
+    
+    // Hide after short time
+    setTimeout(() => {
+      if (overlay) {
+        overlay.style.display = 'none';
+      }
+    }, 800);
+  }
+}
+
+// Hide count-in overlay
+export function hideCountInIndicator() {
+  const overlay = document.getElementById('countInOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+}
+
+// Check timing with first-beat leeway
+export function checkTapTimingWithLeeway(tapTime, expectedTime, beatIndex, tolerance = { perfect: 70, good: 170 }) {
+  if (!isRealTimeTracking) return null;
+  
+  // Generous leeway for first beat
+  let adjustedTolerance = tolerance;
+  if (beatIndex === 0) {
+    adjustedTolerance = {
+      perfect: 150,  // Much more generous
+      good: 300      // Even more generous
+    };
+  }
+  
+  const timeDiff = Math.abs(tapTime - expectedTime);
+  
+  if (timeDiff <= adjustedTolerance.perfect) {
+    return 'perfect';
+  } else if (timeDiff <= adjustedTolerance.good) {
+    return 'good';
+  } else {
+    return 'miss';
+  }
+}
+
+// Get current game flow state
+export function getGameFlowState() {
+  return {
+    state: gameFlowState,
+    countInBeat: countInBeat,
+    isCountingIn: gameFlowState === 'counting',
+    isPlaying: gameFlowState === 'playing',
+    isComplete: gameFlowState === 'complete'
+  };
+}
+
+// Reset game flow
+export function resetGameFlow() {
+  gameFlowState = 'ready';
+  countInBeat = 0;
+  hideCountInIndicator();
+  stopRealTimeTracking();
+}
+
+// Complete the pattern
+export function completePattern() {
+  gameFlowState = 'complete';
+  stopRealTimeTracking();
+  
+  // Show completion indicator
+  showCompletionIndicator();
+  
+  console.log('🎉 Pattern completed!');
+}
+
+// Show completion message
+function showCompletionIndicator() {
+  let overlay = document.getElementById('countInOverlay');
+  
+  if (overlay) {
+    overlay.textContent = '🎉 COMPLETE! 🎉';
+    overlay.style.color = '#FF6B35';
+    overlay.style.fontSize = '2.5rem';
+    overlay.style.display = 'block';
+    overlay.style.transform = 'translate(-50%, -50%) scale(1.2)';
+    overlay.style.opacity = '1';
+    
+    // Animate
+    setTimeout(() => {
+      if (overlay) {
+        overlay.style.transform = 'translate(-50%, -50%) scale(1)';
+      }
+    }, 200);
+  }
+}
+
+// Get current real-time tracking state (keeping for compatibility)
 export function getRealTimeState() {
   return {
     isTracking: isRealTimeTracking,

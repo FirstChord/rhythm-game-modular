@@ -23,7 +23,9 @@ export const SIXTEENTH_REST_SVG = `
 
 // All rhythm patterns organized by difficulty level
 export const patterns = [
-  // BEGINNER PATTERNS
+  // BEGINNER PATTERNS - Simple, clear patterns that work well with VexFlow
+  
+  // Pattern 1: Four quarter notes - the most basic pattern
   {
     level: "beginner",
     bars: [
@@ -35,224 +37,187 @@ export const patterns = [
       ]
     ]
   },
+  
+  // Pattern 2: Quarter note, quarter rest, quarter note, quarter note
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "quarter", rest: false }],          // Beat 1
-        [                                            // Beat 2
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: false }
-        ],
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [                                            // Beat 4
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: false }
-        ]
+        [{ type: "quarter", rest: false }],  // Beat 1
+        [{ type: "quarter", rest: true }],   // Beat 2 (rest)
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "quarter", rest: false }]   // Beat 4
       ]
     ]
   },
+  
+  // Pattern 3: Two quarter notes, one half note
   {
     level: "beginner",
     bars: [
       [
-        [                                            // Beat 1
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: true }
-        ],
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
+        { type: "quarter", rest: false },   // Beat 1
+        { type: "quarter", rest: false },   // Beat 2
+        { type: "half", rest: false }       // Beat 3-4 (half note)
       ]
     ]
   },
+  
+  // Pattern 4: Quarter, quarter, quarter, quarter rest
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "quarter", rest: false }],          // Beat 1
-        [{ type: "quarter", rest: true }],           // Beat 2
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
+        [{ type: "quarter", rest: false }],  // Beat 1
+        [{ type: "quarter", rest: false }],  // Beat 2
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "quarter", rest: true }]    // Beat 4 (rest)
       ]
     ]
   },
+  
+  // Pattern 5: Half note, two quarter notes
   {
     level: "beginner",
     bars: [
       [
-        [                                            // Beat 1
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: false }
-        ],
-        [{ type: "eighth", rest: false },            // Beat 2
-         { type: "eighth", rest: false }],
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: true }]            // Beat 4
+        { type: "half", rest: false },      // Beat 1-2 (half note)
+        { type: "quarter", rest: false },   // Beat 3
+        { type: "quarter", rest: false }    // Beat 4
       ]
     ]
   },
+  
+  // Pattern 6: Quarter, quarter rest, quarter, quarter rest
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "quarter", rest: false }],          // Beat 1
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
+        [{ type: "quarter", rest: false }],  // Beat 1
+        [{ type: "quarter", rest: true }],   // Beat 2 (rest)
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "quarter", rest: true }]    // Beat 4 (rest)
       ]
     ]
   },
+  
+  // Pattern 7: Two eighth notes, quarter, quarter, quarter
   {
     level: "beginner",
     bars: [
       [
-        [                                            // Beat 1
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: false }
-        ],
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "quarter", rest: true }],           // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
+        [{ type: "eighth", rest: false }],   // Beat 1a
+        [{ type: "eighth", rest: false }],   // Beat 1b
+        [{ type: "quarter", rest: false }],  // Beat 2
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "quarter", rest: false }]   // Beat 4
       ]
     ]
   },
+  
+  // Pattern 8: Quarter, two eighth notes, quarter, quarter
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "quarter", rest: false }],          // Beat 1
-        [{ type: "quarter", rest: true }],           // Beat 2
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: true }]            // Beat 4
+        [{ type: "quarter", rest: false }],  // Beat 1
+        [{ type: "eighth", rest: false }],   // Beat 2a
+        [{ type: "eighth", rest: false }],   // Beat 2b
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "quarter", rest: false }]   // Beat 4
       ]
     ]
   },
+  
+  // Pattern 9: Quarter, quarter, two eighth notes, quarter
   {
     level: "beginner",
     bars: [
       [
-        [                                            // Beat 1
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: false }
-        ],
-        [{ type: "eighth", rest: false },            // Beat 2
-         { type: "eighth", rest: false }],
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: true }]            // Beat 4
+        [{ type: "quarter", rest: false }],  // Beat 1
+        [{ type: "quarter", rest: false }],  // Beat 2
+        [{ type: "eighth", rest: false }],   // Beat 3a
+        [{ type: "eighth", rest: false }],   // Beat 3b
+        [{ type: "quarter", rest: false }]   // Beat 4
       ]
     ]
   },
+  
+  // Pattern 10: Quarter, quarter, quarter, two eighth notes
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "quarter", rest: false }],          // Beat 1
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [                                            // Beat 3
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: false }
-        ],
-        [{ type: "quarter", rest: false }]           // Beat 4
+        [{ type: "quarter", rest: false }],  // Beat 1
+        [{ type: "quarter", rest: false }],  // Beat 2
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "eighth", rest: false }],   // Beat 4a
+        [{ type: "eighth", rest: false }]    // Beat 4b
       ]
     ]
   },
-
-  // Two-bar patterns
+  
+  // Pattern 11: Eighth note, eighth rest, quarter, quarter, quarter
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "quarter", rest: false }],          // Beat 1 (Bar 1)
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "quarter", rest: true }],           // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
-      ],
-      [
-        [{ type: "eighth", rest: false },            // Beat 1 (Bar 2)
-         { type: "eighth", rest: false }],
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "quarter", rest: true }],           // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
+        [{ type: "eighth", rest: false }],   // Beat 1a
+        [{ type: "eighth", rest: true }],    // Beat 1b (rest)
+        [{ type: "quarter", rest: false }],  // Beat 2
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "quarter", rest: false }]   // Beat 4
       ]
     ]
   },
+  
+  // Pattern 12: Quarter, eighth note, eighth rest, quarter, quarter
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "quarter", rest: false }],          // Beat 1 (Bar 1)
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
-      ],
-      [
-        [{ type: "quarter", rest: false }],          // Beat 1 (Bar 2)
-        [{ type: "quarter", rest: true }],           // Beat 2
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: true }]            // Beat 4
+        [{ type: "quarter", rest: false }],  // Beat 1
+        [{ type: "eighth", rest: false }],   // Beat 2a
+        [{ type: "eighth", rest: true }],    // Beat 2b (rest)
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "quarter", rest: false }]   // Beat 4
       ]
     ]
   },
+  
+  // Pattern 13: Four eighth notes (two per beat)
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "eighth", rest: false },            // Beat 1 (Bar 1)
-         { type: "eighth", rest: false }],
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
-      ],
-      [
-        [{ type: "eighth", rest: false },            // Beat 1 (Bar 2)
-         { type: "eighth", rest: true }],
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: true }]            // Beat 4
+        [{ type: "eighth", rest: false }],   // Beat 1a
+        [{ type: "eighth", rest: false }],   // Beat 1b
+        [{ type: "eighth", rest: false }],   // Beat 2a
+        [{ type: "eighth", rest: false }],   // Beat 2b
+        [{ type: "quarter", rest: false }],  // Beat 3
+        [{ type: "quarter", rest: false }]   // Beat 4
       ]
     ]
   },
+  
+  // Pattern 14: Whole note (one note for entire bar)
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "quarter", rest: false }],          // Beat 1 (Bar 1)
-        [                                            // Beat 2
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: false }
-        ],
-        [{ type: "quarter", rest: false }],          // Beat 3
-        [{ type: "quarter", rest: false }]           // Beat 4
-      ],
-      [
-        [{ type: "quarter", rest: false }],          // Beat 1 (Bar 2)
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [                                            // Beat 3
-          { type: "eighth", rest: false },
-          { type: "eighth", rest: false }
-        ],
-        [{ type: "quarter", rest: false }]           // Beat 4
+        [{ type: "whole", rest: false }]     // Beat 1-4 (whole note)
       ]
     ]
   },
+  
+  // Pattern 15: Quarter note, half note, quarter note
   {
     level: "beginner",
     bars: [
       [
-        [{ type: "eighth", rest: false },            // Beat 1 (Bar 1)
-         { type: "eighth", rest: false }],
-        [{ type: "quarter", rest: false }],          // Beat 2
-        [{ type: "eighth", rest: false },            // Beat 3
-         { type: "eighth", rest: false }],
-        [{ type: "quarter", rest: true }]            // Beat 4
-      ],
-      [
-        [{ type: "quarter", rest: false }],          // Beat 1 (Bar 2)
-        [{ type: "quarter", rest: true }],           // Beat 2
-        [{ type: "eighth", rest: false },            // Beat 3
-         { type: "eighth", rest: false }],
-        [{ type: "quarter", rest: false }]           // Beat 4
+        [{ type: "quarter", rest: false }],  // Beat 1
+        [{ type: "half", rest: false }],     // Beat 2-3 (half note)
+        [{ type: "quarter", rest: false }]   // Beat 4
       ]
     ]
   },
@@ -672,9 +637,15 @@ export function flattenPattern(patternArr) {
     for (let j = 0; j < bar.length; j++) {
       let beat = bar[j];
       
-      // Add all notes in this beat
-      for (let k = 0; k < beat.length; k++) {
-        out.push(beat[k]);
+      // Handle both old nested format and new simplified format
+      if (Array.isArray(beat)) {
+        // Old format: beat is an array of notes
+        for (let k = 0; k < beat.length; k++) {
+          out.push(beat[k]);
+        }
+      } else {
+        // New simplified format: beat is a single note
+        out.push(beat);
       }
     }
     

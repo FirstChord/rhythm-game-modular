@@ -107,6 +107,11 @@ function handleKeyDown(e) {
   const mode = state.mode;
   const currentTime = performance.now();
   
+  // Measure input latency for timing diagnostics
+  if (window.recordTap) {
+    window.recordTap(e.timeStamp);
+  }
+  
   // Debug logging
   if (DEBUG_INPUT) {
     console.log(`🔍 Key pressed: "${e.key}" (code: "${e.code}"), Mode: ${mode}`);
@@ -114,13 +119,14 @@ function handleKeyDown(e) {
   
   if (mode === 'single') {
     // Single player mode - spacebar only
-    if (isValidKey(e, 'single') && !state.keyIsDown[' ']) {
+    // Allow rapid taps for rhythm games - don't check if key is already down
+    if (isValidKey(e, 'single')) {
       processTap(' ', currentTime, 1);
       showTapFeedback(1);
       e.preventDefault();
       if (DEBUG_INPUT) console.log('✅ Single player tap processed');
     } else if (DEBUG_INPUT) {
-      console.log('❌ Single player key not valid or already down');
+      console.log('❌ Single player key not valid');
     }
   } else {
     // Multiplayer mode
@@ -159,6 +165,11 @@ function handleKeyUp(e) {
   const state = gameState();
   const currentTime = performance.now();
   
+  // Measure input latency for timing diagnostics
+  if (window.recordTap) {
+    window.recordTap(e.timeStamp);
+  }
+  
   if (DEBUG_INPUT) {
     console.log(`🔓 Key released: "${e.key}" (code: "${e.code}")`);
   }
@@ -168,6 +179,7 @@ function handleKeyUp(e) {
     updateGameState.setKeyDown(' ', false);
     if (state.currentlyHolding) {
       updateGameState.endHoldPeriod(currentTime, 1);
+      updateTapDuration(currentTime, 1); // Track duration for analysis
       if (DEBUG_INPUT) console.log('🔚 Ended single player hold period');
     }
   }
@@ -176,6 +188,7 @@ function handleKeyUp(e) {
     updateGameState.setKeyDown('a', false);
     if (state.currentlyHoldingP1) {
       updateGameState.endHoldPeriod(currentTime, 1);
+      updateTapDuration(currentTime, 1); // Track duration for analysis
       if (DEBUG_INPUT) console.log('🔚 Ended Player 1 hold period');
     }
   }
@@ -184,6 +197,7 @@ function handleKeyUp(e) {
     updateGameState.setKeyDown('Enter', false);
     if (state.currentlyHoldingP2) {
       updateGameState.endHoldPeriod(currentTime, 2);
+      updateTapDuration(currentTime, 2); // Track duration for analysis
       if (DEBUG_INPUT) console.log('🔚 Ended Player 2 hold period');
     }
   }
@@ -234,7 +248,7 @@ function handleTouchEnd(e) {
   e.preventDefault();
 }
 
-// Process a tap input
+// Process a tap input - now just records timing
 function processTap(key, currentTime, player) {
   const state = gameState();
   
@@ -250,56 +264,48 @@ function processTap(key, currentTime, player) {
     updateGameState.addHoldPeriod(currentTime, player);
   }
   
-  console.log(`🎹 Tap: Player ${player}, Key: ${key}, Time: ${currentTime.toFixed(2)}`);
+  console.log(`🎹 Tap recorded: Player ${player}, Time: ${currentTime.toFixed(2)}`);
   
-  // Check for real-time tracking feedback
-  checkRealTimeFeedback(currentTime, player);
+  // Record tap for later analysis
+  recordTapForAnalysis(currentTime, player);
 }
 
-// Check if tap should provide real-time feedback
-function checkRealTimeFeedback(tapTime, player) {
-  // Check if we're in real-time tracking mode and have expected beat times
-  if (typeof window !== 'undefined' && window.expectedBeatTimes) {
-    const expectedTimes = window.expectedBeatTimes;
+// Enhanced tap recording for advanced analysis
+function recordTapForAnalysis(tapTime, player) {
+  // Use the existing recording system but enhance it
+  if (typeof window !== 'undefined' && window.isRecording && window.recordedTaps && Array.isArray(window.recordedTaps)) {
+    // Create a tap entry that will be updated when the key is released
+    const tapEntry = {
+      time: tapTime,
+      player: player,
+      startTime: tapTime,
+      endTime: null, // Will be set when key is released
+      duration: 0,   // Will be calculated
+      isComplete: false
+    };
     
-    // Find the closest expected beat time
-    let closestBeatIndex = -1;
-    let closestTimeDiff = Infinity;
-    
-    for (let i = 0; i < expectedTimes.length; i++) {
-      if (expectedTimes[i]) {
-        const timeDiff = Math.abs(tapTime - expectedTimes[i]);
-        if (timeDiff < closestTimeDiff && timeDiff < 500) { // Within 500ms window
-          closestTimeDiff = timeDiff;
-          closestBeatIndex = i;
-        }
+    window.recordedTaps.push(tapEntry);
+    console.log(`📝 Recorded tap #${window.recordedTaps.length} at ${tapTime.toFixed(2)} (duration tracking started)`);
+  } else if (typeof window !== 'undefined' && window.recordedTaps) {
+    console.log(`🚫 Tap ignored (not recording yet) at ${tapTime.toFixed(2)}`);
+  }
+}
+
+// Update tap duration when key is released
+function updateTapDuration(releaseTime, player) {
+  if (typeof window !== 'undefined' && window.recordedTaps && Array.isArray(window.recordedTaps)) {
+    // Find the most recent incomplete tap for this player
+    for (let i = window.recordedTaps.length - 1; i >= 0; i--) {
+      const tap = window.recordedTaps[i];
+      if (tap.player === player && !tap.isComplete) {
+        tap.endTime = releaseTime;
+        tap.duration = releaseTime - tap.startTime;
+        tap.isComplete = true;
+        console.log(`⏱️ Updated tap duration: ${tap.duration.toFixed(2)}ms for player ${player}`);
+        break;
       }
-    }
-    
-    if (closestBeatIndex >= 0) {
-      // Determine timing accuracy
-      let result;
-      if (closestTimeDiff <= 70) {
-        result = 'perfect';
-      } else if (closestTimeDiff <= 170) {
-        result = 'good';
-      } else {
-        result = 'miss';
-      }
-      
-      // Show feedback (this will be called from the main module)
-      console.log(`🎯 Real-time feedback: ${result} (${closestTimeDiff.toFixed(0)}ms off) on beat ${closestBeatIndex + 1}`);
-      
-      // Notify the notation module to show feedback
-      if (typeof window.showNotationFeedback === 'function') {
-        window.showNotationFeedback(closestBeatIndex, result);
-      }
-      
-      return { beatIndex: closestBeatIndex, result: result, timeDiff: closestTimeDiff };
     }
   }
-  
-  return null;
 }
 
 // Show visual feedback for tap
