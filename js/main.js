@@ -34,7 +34,7 @@ import {
   getInputState,
   simulateInput,
   emergencyStop
-  // setDebugMode  // Comment out for now
+  // setDebugMode - disabled
 } from './modules/inputHandler.js';
 import {
   initNotation,
@@ -54,10 +54,9 @@ import {
   showTapFeedback,
   stopRealTimeTracking
 } from './modules/notation.js';
-// Remove timing monitor import - no longer needed
-// import SimpleTimingMonitor from './utils/simpleTimingMonitor.js';
 
-// TODO: Import other modules as we build them
+
+// Import modules
 
 // Game settings
 const SPEEDS = { slow: 70, medium: 100, fast: 140 };
@@ -112,23 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize audio module
   initAudio(metronome, BEAT_INTERVAL);
   
-  // Initialize simple timing monitor
-  // timingMonitor = new SimpleTimingMonitor({
-    /*isVisible: true,
-    onUpdate: (stats) => {
-      // Only log significant issues
-      if (stats.inputLatency.avg > 100) {
-        console.warn('� High input latency:', stats.inputLatency.avg.toFixed(1) + 'ms');
-      }
-      if (stats.frameDrops.count > 5) {
-        console.warn('� Frame drops detected:', stats.frameDrops.count);
-      }
-    }
-  });*/
-  
-  // Make timing monitor globally available
-  // window.timingMonitor = timingMonitor;
-  
+  // Timing monitor removed - using SmartLatencyCompensator instead  
   // Initialize input handler module
   const gameStateModule = {
     getGameState,
@@ -167,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setupEventListeners();
   
   console.log('✅ Game initialized successfully!');
-  console.log(`🎼 Current tempo: ${BPM} BPM (${speed})`);
+  console.log(`🎼 Tempo: ${BPM} BPM (${speed})`);
   
   // Initialize smart audio latency compensation
   window.latencyCompensator = new SmartLatencyCompensator();
@@ -176,20 +159,10 @@ document.addEventListener('DOMContentLoaded', function() {
   
   const compensationInfo = window.latencyCompensator.getInfo();
   console.log(`🎵 Smart latency compensation: ${compensationInfo.total}ms (${compensationInfo.browser})`);
-  console.log(`🎵 Base: ${compensationInfo.base}ms, Adaptive: ${compensationInfo.adaptive}ms, Learning: ${compensationInfo.learning ? 'ON' : 'OFF'}`);
-  console.log(`🎵 Calibrated with negative compensation: -38ms (anticipation adjustment)`);
   
   // Show initial pattern info
   const patternInfo = getPatternInfo();
-  console.log(`🎵 Pattern info:`, patternInfo);
   console.log(`📊 ${patternInfo.totalInLevel} patterns available for ${patternInfo.level} level`);
-  
-  // Show initial game state
-  console.log('🎮 Initial game state:', getStateSnapshot());
-  
-  // Show input instructions
-  const currentMode = modeSingle && modeSingle.checked ? 'single' : 'multi';
-  console.log('🎹 Input instructions:', getInputInstructions(currentMode));
   
   // Add simple latency test button for optimization
   addLatencyTestButton();
@@ -232,9 +205,7 @@ function setupEventListeners() {
       const newLevel = levelSelect.value;
       setSelectedLevel(newLevel);
       const patternInfo = getPatternInfo();
-      console.log(`🎯 Level changed to: ${newLevel}`);
-      console.log(`📊 ${patternInfo.totalInLevel} patterns available`);
-      console.log(`🎵 Current pattern:`, patternInfo.currentPattern);
+
     });
   }
   
@@ -254,16 +225,14 @@ function setSpeed(newSpeed) {
   setBeatInterval(BEAT_INTERVAL);
   setGameSpeed(newSpeed); // Update game state
   
-  console.log(`🎼 Speed changed to: ${speed} (${BPM} BPM)`);
-  console.log('🎮 Updated game state:', getStateSnapshot());
+
 }
 
 // Test function to cycle through patterns
 function testNextPattern() {
   const newPattern = nextPattern();
   const patternInfo = getPatternInfo();
-  console.log(`🔄 Next pattern (${patternInfo.currentIndex + 1}/${patternInfo.totalInLevel}):`);
-  console.log('🎵 Pattern data:', newPattern);
+
   
   // Show a summary of the pattern
   const noteCount = newPattern.filter(note => !note.isBarline && !note.rest).length;
@@ -281,7 +250,7 @@ function testNextPattern() {
   }
 }
 
-// Test function specifically for multiplayer input debugging
+// Multiplayer input testing function
 function testMultiplayerInput() {
   console.log('🎮 Testing Multiplayer Input - Debug Mode');
   

@@ -1,7 +1,7 @@
 // Input Handler Module - Manages keyboard and touch events
 
 // Debug mode toggle
-let DEBUG_INPUT = true;
+let DEBUG_INPUT = false;
 
 // Import game state functions we'll need
 let gameState = null;

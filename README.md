@@ -7,13 +7,15 @@ A sophisticated rhythm training game built with modular JavaScript architecture,
 ## 🎵 **Core Features**
 
 ### **Gameplay**
+
 - **Pattern-based rhythm training** with VexFlow music notation
-- **Multiple difficulty levels**: Beginner, Intermediate, Advanced  
+- **Multiple difficulty levels**: Beginner, Intermediate, Advanced
 - **Speed controls**: Slow, Medium, Fast
 - **Single and multiplayer modes** (Spacebar vs A/Enter keys)
 - **Real-time visual feedback** with beat highlighting
 
 ### **🎯 Advanced Timing System**
+
 - **Smart Audio Latency Compensation** - automatically adapts to your browser/audio setup
 - **Precision timing analysis** with detailed feedback percentages
 - **Adaptive learning** - system learns your timing style and adjusts compensation
@@ -21,6 +23,7 @@ A sophisticated rhythm training game built with modular JavaScript architecture,
 - **Real-time calibration** - double-click the latency button to manually adjust
 
 ### **📊 Educational Features**
+
 - **Note duration scoring** - tracks how long you hold notes (competitive analysis ready)
 - **Timing precision percentages** - detailed performance metrics
 - **Rest beat recognition** - teaches when NOT to tap
@@ -39,17 +42,20 @@ A sophisticated rhythm training game built with modular JavaScript architecture,
 The game includes a sophisticated latency compensation system that automatically adjusts to your setup:
 
 ### **How It Works:**
+
 - **Auto-detection** based on browser and OS (Chrome: ~165ms, Safari: ~120ms, etc.)
-- **Manual calibration** via double-click on latency button  
+- **Manual calibration** via double-click on latency button
 - **Adaptive learning** from your playing patterns
 - **Real-time adjustment** ±200ms range
 
 ### **Compensation Types:**
+
 - **Positive values (50-200ms)**: Compensates for audio delay (most common)
 - **Negative values (-20 to -50ms)**: Compensates for fast reflexes/anticipation
 - **Zero (0ms)**: No compensation (raw timing)
 
 ### **Calibration Tips:**
+
 - Use external latency testing tools for precise measurement
 - Start with auto-detected values, then fine-tune by ±10-20ms
 - Negative values work well for experienced musicians with fast reflexes
