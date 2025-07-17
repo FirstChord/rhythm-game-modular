@@ -43,7 +43,7 @@ import {
   // setDebugMode - disabled
 } from './modules/inputHandler.js';
 import {
-  initializeNotation,
+  initNotation,
   renderPattern,
   renderCurrentPattern,
   testNotation,
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initInputHandler(gameStateModule, tapIndicators);
   
   // Initialize notation module
-  if (!initializeNotation('vexflowOutput')) {
+  if (!initNotation('vexflowOutput')) {
     console.error('❌ Failed to initialize VexFlow notation');
   } else {
     // Render initial pattern
